@@ -8,13 +8,15 @@ const container = document.getElementById('container');
 /*配置这里 颜色*/
 var s_color = '#FF0000' //red
 var t_color = '#00C957' //green
-var normal_node_color = '#BBFFFF' //blue
-var normal_line_color = '#000000' //black
+var default_node_color = '#BBFFFF' //blue
+var default_line_color = '#000000' //black
 var path_node_color = '#f2f452' //yellow
 var path_line_color = '#f2f452'
 var diff_new_node_color = '#fa7ab8' //pink
 var diff_new_line_color = '#fa7ab8'
 var diff_removed_node_color = '#d7d9da'//grey
+var highlight_node_color = '#ef7a06'//orange
+var highlight_line_color = '#ef7a06'//orange
 /*配置这里 图布局*/
 const width = container.scrollWidth;
 const height = container.scrollHeight || 700;
@@ -41,15 +43,10 @@ const graph = new G6.Graph({
     },
 });
 const data = {
-    nodes: [
-
-    ],
-    edges: [
-
-    ],
+    nodes: [],
+    edges: [],
 };
 graph.data(data);
-graph.render();
 
 /*node drag*/
 function refreshDragedNodePosition(e) {
@@ -97,7 +94,7 @@ document.getElementById('graph_file').addEventListener('change', function select
             data.nodes.push({
                 id: lst[1],
                 label: lst[1],
-                style: { fill: normal_node_color }
+                style: { fill: default_node_color }
             })
             //console.log(i)
         }
@@ -172,10 +169,10 @@ document.getElementById('path_file').addEventListener('change', function selecte
 document.getElementById('next_path_btn').addEventListener('click', function () {
     if (path_idx > 0 && path_idx < paths_length) {
         //clear paths[path_idx-1]
-        color_path(paths[path_idx - 1], normal_node_color, normal_line_color)
+        color_path(paths[path_idx - 1], default_node_color, default_line_color)
         //clear paths[path_idx-2](clear diff shown on paths[path_idx-1])
         if (path_idx > 1) {
-            color_path(paths[path_idx - 2], normal_node_color, normal_line_color)
+            color_path(paths[path_idx - 2], default_node_color, default_line_color)
         }
         //show paths[path_idx]
         console.log(paths[path_idx])
@@ -192,7 +189,7 @@ document.getElementById('pre_path_btn').addEventListener('click', function () {
     //path_idx-1 is the current shown
     if (path_idx > 1 && path_idx <= paths_length) {
         //clear paths[path_idx-1]
-        color_path(paths[path_idx - 1], normal_node_color, normal_line_color)
+        color_path(paths[path_idx - 1], default_node_color, default_line_color)
         //clear paths[path_idx-2](clear diff shown on paths[path_idx-1]) but as it would be recolored as current path, no need here
         //show paths[path_idx-2]
         console.log(paths[path_idx - 2])
@@ -293,4 +290,86 @@ function show_path_diff(new_path, pre_path, node_color, line_color, removed_node
             })
         }
     }
+}
+
+/*reset: 
+1.all node and edge to default color but the first path
+2.path_idx=1
+but paths and graph are kept
+*/
+document.getElementById('reset_btn').addEventListener('click', function () {
+    path_idx = 0
+    var path_lst = paths[path_idx].split("\t")
+    const nodes = data.nodes
+    const edges = data.edges
+    //all node and edge to default color but s t
+    edges.forEach((edge) => {
+        edge.style.stroke = default_line_color
+    })
+    nodes.forEach((node) => {
+        //s
+        if (node.id == path_lst[0]) {
+            node.style.fill = s_color
+        }
+        //t
+        else if (node.id == path_lst[path_lst.length - 1]) {
+            node.style.fill = t_color
+        }
+        else {
+            node.style.fill = default_node_color
+        }
+    })
+    //first path
+    //show paths[path_idx]
+    console.log(paths[path_idx])
+    color_path(paths[path_idx], path_node_color, path_line_color)
+    document.getElementById("path_text").innerHTML = paths[path_idx]
+
+    ++path_idx
+    graph.render();
+})
+
+/*clear:
+1.all node and edge to default color 
+2.need to upload path file again*/
+document.getElementById('clear_btn').addEventListener('click', function () {
+    const nodes = data.nodes
+    const edges = data.edges
+    //all node and edge to default color
+    edges.forEach((edge) => {
+        edge.style.stroke = default_line_color
+    })
+    nodes.forEach((node) => {
+        node.style.fill = default_node_color
+    })
+    graph.render();
+})
+
+/*highlight node*/
+document.getElementById('highlight_node_btn').addEventListener('click', function () {
+    var id = document.getElementById("highlight_node_id").value
+    color_node(id, highlight_node_color)
+    graph.render();
+})
+document.getElementById('edge_too_btn').addEventListener('click', function () {
+    var id = document.getElementById("highlight_node_id").value
+    color_node(id, highlight_node_color)
+    color_node_connectingEdge(id, highlight_line_color)
+    graph.render();
+})
+function color_node(id, color) {
+    const nodes = data.nodes
+    nodes.forEach((node) => {
+        if (node.id == id) {
+            node.style.fill = color
+        }
+    })
+}
+function color_node_connectingEdge(id, color) {
+    const edges = data.edges
+    edges.forEach((edge) => {
+        if (edge.source == id || edge.target == id) {
+            edge.style.stroke = color
+        }
+    })
 }
