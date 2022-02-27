@@ -3,6 +3,11 @@
 - show each path
 - show diff with the previous path
 
+## version1.0
+
+- display unit: path
+- no path2 yet, just display each path1 from read from path_file
+
 # input
 
 - graph_file: tve format 
@@ -15,7 +20,7 @@
   ...
   ```
 
-- path_file: 
+- path_file: (vij is vertex id)
 
   ```
   s v01 v02 ... t
